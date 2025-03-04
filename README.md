@@ -110,6 +110,8 @@ podman run \
   --env=SERVER_PASSWORD="PleaseChangeMe" \
   --env=SERVER_ADMIN_PASSWORD="AlsoChangeMe" \
   --env=GAME_PORT=7777 \
+  --restart always \
+  --label io.containers.autoupdate=registry \
   docker.io/sknnr/ark-ascended-server:latest
 ```
 
