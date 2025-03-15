@@ -1,15 +1,16 @@
+```markdown
 # ark-ascended-server
-[![Static Badge](https://img.shields.io/badge/DockerHub-blue)](https://hub.docker.com/r/sknnr/ark-ascended-server) ![Docker Pulls](https://img.shields.io/docker/pulls/sknnr/ark-ascended-server) [![Static Badge](https://img.shields.io/badge/GitHub-green)](https://github.com/jsknnr/ark-ascended-server) ![GitHub Repo stars](https://img.shields.io/github/stars/jsknnr/ark-ascended-server)
+[![Static Badge](https://img.shields.io/badge/DockerHub-blue)](https://hub.docker.com/r/sknnr/ark-ascended-server) ![Docker Pulls](https://img.shields.io/docker/pulls/sknnr/ark-ascended-server)
 
 Containerized Ark: Survival Ascended server
 
 This project runs the Windows Ark: SA binaries in Debian 12 Linux headless with GE Proton.
 
-**Disclaimer:** This is not an official image. No support, implied or otherwise is offered to any end user by the author or anyone else. Feel free to do what you please with the contents of this repo.
+**Disclaimer:** This is not an official image. No support, implied or otherwise is offered to any end user by the author or anyone else. Feel free to do what you please with the contents of this repository.
 
 ## Usage
 
-The processes within the container do **NOT** run as root. Everything runs as the user steam (gid:10000/uid:10000). There is no interface at all, everything runs headless. If you exec into the container, you will drop into `/home/steam` as the steam user. Ark: SA will be installed to `/home/steam/ark`. Any persistent volumes should be mounted to `/home/steam/ark/ShooterGame/Saved`.
+The processes within the container do **NOT** run as root. Everything runs as the user steam (gid:10000/uid:10000). There is no interface at all, everything runs headless. If you exec into the container, you will be operating as the steam user.
 
 ### Ports
 
@@ -18,9 +19,9 @@ The processes within the container do **NOT** run as root. Everything runs as th
 | Game Port | UDP | 7777 |
 | RCON Port | TCP | 27020 |
 
-This is the port required by Ark: SA. If you have read elsewhere about the query port, that is deprecated and not used in the Survival Ascended version of Ark. If you are not able to see your server on the server list or you are unable to connect, simply put, you are doing something wrong. There is nothing wrong with the container when it comes ot this. There are too many models and configurations of routers out there for me to provide examples. Refer to the documentation on your router and do some research on how port forwarding works if you run into issues. 
+This is the port required by Ark: SA. If you have read elsewhere about the query port, that is deprecated and not used in the Survival Ascended version of Ark. If you are not able to see your server, make sure you have enabled the correct port forwarding on your router.
 
-If you are still running into issues, there is one potential cause that may be out of your control that I feel I must mention. Some ISPs (internet service providers) utilize a technology called CNAT/CGNAT (Carrier/Carrier Grade NAT). Briefly put, this allows your ISP to use a singular public IP address for many customers. Due to the sharing of a single public IP address, this can interfere or prevent you from port forwarding from your public IP address. If you believe this is the case for you, you should contact your ISP and ask if they are doing this. You may be able to request a static public IP address, though your ISP will likely charge extra for this.
+If you are still running into issues, there is one potential cause that may be out of your control that I feel I must mention. Some ISPs (internet service providers) utilize a technology called CGNAT (Carrier Grade Network Address Translation). CGNAT can cause issues with port forwarding. If you suspect this may be the case, you will need to contact your ISP for assistance.
 
 ### Environment Variables
 
@@ -57,7 +58,7 @@ docker run \
 
 ### Docker Compose
 
-To use Docker Compose, either clone this repo or copy the `compose.yaml` file out of the `container` directory to your local machine. Edit the compose file to change the environment variables to the values you desire and then save the changes. Once you have made your changes, from the same directory that contains the compose and the env files.
+To use Docker Compose, either clone this repo or copy the `compose.yaml` file out of the `container` directory to your local machine. Edit the compose file to change the environment variables to the desired values.
 
 compose.yaml :
 ```yaml
@@ -79,7 +80,6 @@ services:
 
 volumes:
   ark-persistent-data:
-
 ```
 
 To bring the container up:
@@ -117,14 +117,103 @@ podman run \
 
 ### Kubernetes
 
-I've built a Helm chart and have included it in the `helm` directory within this repo. Modify the `values.yaml` file to your liking and install the chart into your cluster. Be sure to create and specify a namespace as I did not include a template for provisioning a namespace.
+I've built a Helm chart and have included it in the `helm` directory within this repo. Modify the `values.yaml` file to your liking and install the chart into your cluster. Be sure to create and use a `PersistentVolume` and `PersistentVolumeClaim` for the data storage.
+
+## Automatic Updates
+
+### Using Watchtower with Docker
+
+Watchtower can automatically update your running Docker containers. To use Watchtower:
+
+1. Run Watchtower:
+
+   ```bash
+   docker run -d \
+     --name watchtower \
+     -v /var/run/docker.sock:/var/run/docker.sock \
+     containrrr/watchtower
+   ```
+
+2. Configure Watchtower (optional):
+
+   ```bash
+   docker run -d \
+     --name watchtower \
+     -v /var/run/docker.sock:/var/run/docker.sock \
+     containrrr/watchtower \
+     --interval 300 \
+     --notifications email \
+     --notification-email-from watchtower@example.com \
+     --notification-email-to you@example.com \
+     --notification-email-server smtp.example.com \
+     --notification-email-server-port 587 \
+     --notification-email-server-user user@example.com \
+     --notification-email-server-password password
+   ```
+
+### Using Built-in Update Functions in Podman
+
+Podman supports automatic updates with the `io.containers.autoupdate` label.
+
+1. Ensure your Podman run command includes the `--label io.containers.autoupdate=registry` option:
+
+   ```bash
+   podman run \
+     --detach \
+     --name Ark-Ascended-Server \
+     --mount type=volume,source=ark-persistent-data,target=/home/steam/ark/ShooterGame/Saved \
+     --publish 7777:7777/udp \
+     --env=SERVER_MAP=TheIsland_WP \
+     --env=SESSION_NAME="Ark Ascended Containerized" \
+     --env=SERVER_PASSWORD="PleaseChangeMe" \
+     --env=SERVER_ADMIN_PASSWORD="AlsoChangeMe" \
+     --env=GAME_PORT=7777 \
+     --restart always \
+     --label io.containers.autoupdate=registry \
+     docker.io/sknnr/ark-ascended-server:latest
+   ```
+
+2. Create a systemd unit file for auto-update:
+
+   ```ini
+   [Unit]
+   Description=Podman auto-update service
+   Wants=network-online.target
+   After=network-online.target
+
+   [Service]
+   Type=oneshot
+   ExecStart=/usr/bin/podman auto-update --authfile /path/to/auth.json
+   ```
+
+3. Create a systemd timer to run the update service daily:
+
+   ```ini
+   [Unit]
+   Description=Run Podman auto-update daily
+
+   [Timer]
+   OnCalendar=daily
+   Persistent=true
+
+   [Install]
+   WantedBy=timers.target
+   ```
+
+4. Enable and start the timer:
+
+   ```bash
+   sudo systemctl enable podman-auto-update.timer
+   sudo systemctl start podman-auto-update.timer
+   ```
 
 ## Troubleshooting
 
 ### Connectivity
 
-If you are having issues connecting to the server once the container is deployed, I promise the issue is not with this image. You need to make sure that the ports 7777/udp and 27020/tcp (or whichever ones you decide to use) are open on your router as well as the container host where this container image is running. You will also have to port-forward the game-port and query-port from your router to the private IP address of the container host where this image is running. After this has been done correctly and you are still experiencing issues, your internet service provider (ISP) may be blocking the ports and you should contact them to troubleshoot.
+If you are having issues connecting to the server once the container is deployed, I promise the issue is not with this image. You need to make sure that the ports 7777/udp and 27020/tcp (or whichever ports you have configured) are open and forwarded correctly on your router.
 
 ### Storage
 
-I recommend having Docker or Podman manage the volume that gets mounted into the container. However, if you absolutely must bind mount a directory into the container you need to make sure that on your container host the directory you are bind mounting is owned by 10000:10000 by default (`chown -R 10000:10000 /path/to/directory`). If the ownership of the directory is not correct the container will not start as the server will be unable to persist the savegame.
+I recommend having Docker or Podman manage the volume that gets mounted into the container. However, if you absolutely must bind mount a directory into the container you need to make sure that ownership and permissions are set correctly. Use `chown -R 10000:10000 /your/mount/path` to set the correct ownership.
+```
