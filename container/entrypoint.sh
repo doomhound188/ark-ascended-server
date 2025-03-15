@@ -75,15 +75,41 @@ fi
 # Cleanup test write
 rm "${ARK_PATH}/ShooterGame/Saved/test"
 
-# Update Ark Ascended
-echo "$(timestamp) INFO: Updating Ark Survival Ascended Dedicated Server"
-steamcmd +@sSteamCmdForcePlatformType windows +force_install_dir "$ARK_PATH" +login anonymous +app_update 2430930 validate +quit
+# Function to get the installed version
+get_installed_version() {
+    grep -oP 'BuildID=\K\d+' "${ARK_PATH}/SteamApps/appmanifest_2430930.acf" 2>/dev/null
+}
 
-# Check that steamcmd was successful
-if [ $? != 0 ]; then
-    echo "$(timestamp) ERROR: steamcmd was unable to successfully initialize and update Ark Survival Ascended Dedicated Server"
-    exit 1
-fi
+# Function to get the latest version from Steam
+get_latest_version() {
+    steamcmd +login anonymous +app_info_print 2430930 +quit | awk '/"branches"/,/}/' | grep -oP '\"public\".*"buildid"\s*"\K\d+'
+}
+
+# Update Ark Ascended if needed
+update_server() {
+    local installed_version latest_version
+    installed_version=$(get_installed_version)
+    latest_version=$(get_latest_version)
+
+    if [ -z "$installed_version" ]; then
+        echo "$(timestamp) INFO: No installed version found, updating Ark Survival Ascended Dedicated Server"
+    elif [ "$installed_version" == "$latest_version" ]; then
+        echo "$(timestamp) INFO: Ark Survival Ascended Dedicated Server is already up to date (version $installed_version)"
+        return
+    else
+        echo "$(timestamp) INFO: Updating Ark Survival Ascended Dedicated Server from version $installed_version to $latest_version"
+    fi
+
+    steamcmd +@sSteamCmdForcePlatformType windows +force_install_dir "$ARK_PATH" +login anonymous +app_update 2430930 validate +quit
+
+    if [ $? != 0 ]; then
+        echo "$(timestamp) ERROR: steamcmd was unable to successfully initialize and update Ark Survival Ascended Dedicated Server"
+        exit 1
+    fi
+}
+
+# Call the update function
+update_server
 
 # Check that log directory exists, if not create
 if ! [ -d "${ARK_PATH}/ShooterGame/Saved/Logs/" ]; then
