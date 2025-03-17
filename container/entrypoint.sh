@@ -77,12 +77,12 @@ rm "${ARK_PATH}/ShooterGame/Saved/test"
 
 # Function to get the installed version
 get_installed_version() {
-    grep -oP 'BuildID=\K\d+' "${ARK_PATH}/SteamApps/appmanifest_2430930.acf" 2>/dev/null
+    grep '"buildid"' ~/ark/steamapps/appmanifest_2430930.acf | awk -F'"' '{print $4}'
 }
 
 # Function to get the latest version from Steam
 get_latest_version() {
-    steamcmd +login anonymous +app_info_print 2430930 +quit | awk '/"branches"/,/}/' | grep -oP '\"public\".*"buildid"\s*"\K\d+'
+    steamcmd +login anonymous +app_info_print 2430930 +quit | awk '/"branches"/,/}/' | awk '/"buildid"/ {print $2}' | tr -d '"'
 }
 
 # Update Ark Ascended if needed
