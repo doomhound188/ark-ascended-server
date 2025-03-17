@@ -77,7 +77,7 @@ rm "${ARK_PATH}/ShooterGame/Saved/test"
 
 # Function to get the installed version
 get_installed_version() {
-    grep '"buildid"' ~/ark/steamapps/appmanifest_2430930.acf | awk -F'"' '{print $4}'
+    grep '"buildid"' /home/steam/ark/steamapps/appmanifest_2430930.acf | awk -F'"' '{print $4}'
 }
 
 # Function to get the latest version from Steam
