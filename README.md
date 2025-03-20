@@ -207,6 +207,22 @@ Podman supports automatic updates with the `io.containers.autoupdate` label.
    sudo systemctl start podman-auto-update.timer
    ```
 
+The chart in this repo is also hosted in my helm-charts repository [here](https://jsknnr.github.io/helm-charts)
+
+To install this chart from my helm-charts repository:
+
+```bash
+helm repo add jsknnr https://jsknnr.github.io/helm-charts
+helm repo update
+```
+
+To install the chart from the repo:
+
+```bash
+helm install ark-survival-ascended jsknnr/ark-survival-ascended --values myvalues.yaml
+# Where myvalues.yaml is your copy of the Values.yaml file with the settings that you want
+```
+
 ## Troubleshooting
 
 ### Connectivity
