@@ -15,6 +15,17 @@ ENV GE_PROTON_VERSION "8-30"
 ENV GE_PROTON_URL "https://github.com/GloriousEggroll/proton-ge-custom/releases/download/GE-Proton${GE_PROTON_VERSION}/GE-Proton${GE_PROTON_VERSION}.tar.gz"
 ENV STEAM_COMPAT_CLIENT_INSTALL_PATH "${STEAM_PATH}"
 ENV STEAM_COMPAT_DATA_PATH "${STEAM_PATH}/steamapps/compatdata/${STEAM_APP_ID}"
+ENV TZ "America/Toronto"
+
+# Backup configuration (defaults)
+ENV BACKUP_ENABLED "false"
+ENV BACKUP_REPOSITORY ""
+ENV BACKUP_PASSWORD ""
+ENV BACKUP_SCHEDULE "0 0 * * *"  # Daily at midnight
+ENV BACKUP_RETENTION_DAYS "7"
+ENV BACKUP_PATHS "${ARK_PATH}/ShooterGame/Saved"
+ENV BACKUP_EXCLUDE ""
+ENV BACKUP_BEFORE_UPDATE "true"
 
 RUN groupadd -g $CONTAINER_GID steam \
     && useradd -g $CONTAINER_GID -u $CONTAINER_UID -m steam \
@@ -34,9 +45,13 @@ RUN groupadd -g $CONTAINER_GID steam \
         dbus \
         libfreetype6 \
         net-tools \
+        tzdata \
+        restic \
+        cron \
     && echo 'LANG="en_US.UTF-8"' > /etc/default/locale \
     && echo "en_US.UTF-8 UTF-8" >> /etc/locale.gen \
     && locale-gen \
+    && ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone \
     && rm -f /etc/machine-id \
     && dbus-uuidgen --ensure=/etc/machine-id \
     && ln -s /usr/games/steamcmd /usr/bin/steamcmd \
@@ -66,9 +81,11 @@ RUN mkdir "$ARK_PATH" \
     && rm "/home/steam/GE-Proton${GE_PROTON_VERSION}.tgz" \
     && echo "${IMAGE_VERSION}" > /home/steam/image_version \
     && echo "${MAINTAINER}" > /home/steam/image_maintainer \
-    && echo "${CONTAINER_UID}:${CONTAINER_GID}" > /home/steam/expected_filesystem_permissions
-    
+    && echo "${CONTAINER_UID}:${CONTAINER_GID}" > /home/steam/expected_filesystem_permissions \
+    && mkdir -p /home/steam/backup-scripts
+
 COPY entrypoint.sh /home/steam/entrypoint.sh
+COPY backup-scripts/* /home/steam/backup-scripts/
 
 WORKDIR /home/steam
 

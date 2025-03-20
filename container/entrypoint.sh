@@ -7,7 +7,7 @@ timestamp () {
 
 # Shutdown function for trap
 shutdown () {
-    echo "$(timestamp) INFO: Recieved SIGTERM, shutting down gracefully"
+    echo "$(timestamp) INFO: Received SIGTERM, shutting down gracefully"
     echo "$(timestamp) INFO: Saving world..."
     # Not clear if DoExit saves first so explicitly save then exit
     rcon -a 127.0.0.1:${RCON_PORT} -p "${SERVER_ADMIN_PASSWORD}" Saveworld
@@ -31,6 +31,12 @@ MAINTAINER=$(cat /home/steam/image_maintainer)
 EXPECTED_FS_PERMS=$(cat /home/steam/expected_filesystem_permissions)
 
 echo "$(timestamp) INFO: Launching Ark: Survival Ascended dedicated server image ${IMAGE_VERSION} by ${MAINTAINER}"
+
+# Update timezone if TZ is changed at runtime
+if [ -n "$TZ" ]; then
+  sudo ln -snf /usr/share/zoneinfo/$TZ /etc/localtime 
+  sudo echo $TZ > /etc/timezone
+fi
 
 # Make sure required arguments are set
 if [ -z "$SERVER_MAP" ]; then
@@ -156,10 +162,18 @@ if ! [ -f "${ARK_PATH}/ShooterGame/Saved/Config/WindowsServer/GameUserSettings.i
 RCONEnabled=True
 RCONPort=${RCON_PORT}
 EOF
-elif [ ! grep "RCONEnabled" ${ARK_PATH}/ShooterGame/Saved/Config/WindowsServer/GameUserSettings.ini ]; then
+elif ! grep -q "RCONEnabled" ${ARK_PATH}/ShooterGame/Saved/Config/WindowsServer/GameUserSettings.ini; then
+    echo "$(timestamp) INFO: Adding RCON settings to GameUserSettings.ini"
     sed -i "s/RCONPort=[0-9]*/RCONPort=${RCON_PORT}\nRCONEnabled=True/" ${ARK_PATH}/ShooterGame/Saved/Config/WindowsServer/GameUserSettings.ini
-elif [ grep "RCONEnabled=False" ${ARK_PATH}/ShooterGame/Saved/Config/WindowsServer/GameUserSettings.ini ]; then
+elif grep -q "RCONEnabled=False" ${ARK_PATH}/ShooterGame/Saved/Config/WindowsServer/GameUserSettings.ini; then
+    echo "$(timestamp) INFO: Enabling RCON in GameUserSettings.ini"
     sed -i "s/RCONEnabled=False/RCONEnabled=True/" ${ARK_PATH}/ShooterGame/Saved/Config/WindowsServer/GameUserSettings.ini
+fi
+
+# Ensure RCON port is set correctly in configuration
+if grep -q "RCONPort=" ${ARK_PATH}/ShooterGame/Saved/Config/WindowsServer/GameUserSettings.ini; then
+    echo "$(timestamp) INFO: Setting RCON port to ${RCON_PORT} in GameUserSettings.ini"
+    sed -i "s/RCONPort=[0-9]*/RCONPort=${RCON_PORT}/" ${ARK_PATH}/ShooterGame/Saved/Config/WindowsServer/GameUserSettings.ini
 fi
 
 echo ""
