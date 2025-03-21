@@ -1,5 +1,5 @@
 # ark-ascended-server
-[![Static Badge](https://img.shields.io/badge/DockerHub-blue)](https://hub.docker.com/r/sknnr/ark-ascended-server) ![Docker Pulls](https://img.shields.io/docker/pulls/sknnr/ark-ascended-server)
+[![Static Badge](https://img.shields.io/badge/DockerHub-blue)](https://hub.docker.com/r/sknnr/ark-ascended-server) ![Docker Pulls](https://img.shields.io/docker/pulls/sknnr/ark-ascended-server) [![Static Badge](https://img.shields.io/badge/GHCR-green)](https://github.com/doomhound188/ark-ascended-server/pkgs/container/ark-ascended-server)
 
 Containerized Ark: Survival Ascended server
 
@@ -50,6 +50,22 @@ If you are still running into issues, there is one potential cause that may be o
 | BACKUP_EXCLUDE | Space separated list of exclude patterns | None | False |
 | BACKUP_BEFORE_UPDATE | Whether to backup before updating | true | False |
 
+### Container Registries
+
+This container is available from both Docker Hub and GitHub Container Registry (GHCR).
+
+#### Docker Hub
+
+```bash
+docker pull sknnr/ark-ascended-server:latest
+```
+
+#### GitHub Container Registry
+
+```bash
+docker pull ghcr.io/doomhound188/ark-ascended-server:latest
+```
+
 ### Docker
 
 To run the container in Docker, run the following command:
@@ -71,6 +87,8 @@ docker run \
   sknnr/ark-ascended-server:latest
 ```
 
+You can also use the GHCR image by replacing `sknnr/ark-ascended-server:latest` with `ghcr.io/doomhound188/ark-ascended-server:latest`.
+
 ### Docker Compose
 
 To use Docker Compose, either clone this repo or copy the `compose.yaml` file out of the `container` directory to your local machine. Edit the compose file to change the environment variables to the desired values.
@@ -79,7 +97,9 @@ compose.yaml:
 ```yaml
 services:
   ark-ascended:
-    image: sknnr/ark-ascended-server:latest
+    # Use one of the following image options:
+    image: sknnr/ark-ascended-server:latest  # Docker Hub
+    # image: ghcr.io/doomhound188/ark-ascended-server:latest  # GitHub Container Registry
     ports:
       - "7777:7777/udp"
       - "27020:27020/tcp"
@@ -130,6 +150,8 @@ podman run \
   --restart always \
   --label io.containers.autoupdate=registry \
   docker.io/sknnr/ark-ascended-server:latest
+  # Or use GHCR:
+  # ghcr.io/doomhound188/ark-ascended-server:latest
 ```
 
 ### Kubernetes
@@ -167,6 +189,53 @@ Restic supports various repository types including:
 - Rest Server: `rest:https://user:pass@host:8000/`
 
 For complete details on repository types, see the [Restic documentation](https://restic.readthedocs.io/en/latest/030_preparing_a_new_repo.html).
+
+## GitHub Container Registry
+
+### Automated Workflow
+
+This repository includes a GitHub Actions workflow that automatically builds and publishes the container image to GitHub Container Registry (GHCR) when:
+
+1. Changes are pushed to the `main` branch that affect files in the `container/` directory
+2. A new release is published
+3. The workflow is manually triggered
+
+The workflow builds the container image using the `container/Containerfile` and pushes it to GHCR with the following tags:
+
+- `latest` - For the most recent build from the main branch
+- `v1.2.3` - Full semantic version tag (when a release is created with a tag like v1.2.3)
+- `v1.2` - Major.Minor version tag
+- `v1` - Major version tag
+- `sha-abc123` - Short commit SHA for all builds
+
+To use this workflow:
+1. Fork this repository
+2. Ensure your repository has permission to publish packages
+3. Make your changes to the container
+4. Push to main or create a release to trigger the workflow
+
+### Manual Publishing with Makefile
+
+The Makefile includes targets for building and pushing to GHCR manually:
+
+```bash
+# Build the image for GHCR
+make build-ghcr
+
+# Build and push to GHCR
+make push-ghcr
+```
+
+Before using these targets, you need to:
+
+1. Log in to GHCR:
+   ```bash
+   echo $GITHUB_TOKEN | buildah login ghcr.io -u USERNAME --password-stdin
+   ```
+   
+2. Update the `GHCR_NAMESPACE` in the Makefile to your GitHub username
+
+The Makefile will tag the image with both `latest` and the short git commit hash.
 
 ## Automatic Updates
 
@@ -240,19 +309,19 @@ Podman supports automatic updates with the `io.containers.autoupdate` label.
    sudo systemctl start podman-auto-update.timer
    ```
 
-The chart in this repo is also hosted in my helm-charts repository [here](https://jsknnr.github.io/helm-charts)
+The chart in this repo is also hosted in my helm-charts repository [here](https://doomhound188.github.io/helm-charts)
 
 To install this chart from my helm-charts repository:
 
 ```bash
-helm repo add jsknnr https://jsknnr.github.io/helm-charts
+helm repo add doomhound188 https://doomhound188.github.io/helm-charts
 helm repo update
 ```
 
 To install the chart from the repo:
 
 ```bash
-helm install ark-survival-ascended jsknnr/ark-survival-ascended --values myvalues.yaml
+helm install ark-survival-ascended doomhound188/ark-survival-ascended --values myvalues.yaml
 # Where myvalues.yaml is your copy of the Values.yaml file with the settings that you want
 ```
 
