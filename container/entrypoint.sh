@@ -35,7 +35,7 @@ echo "$(timestamp) INFO: Launching Ark: Survival Ascended dedicated server image
 # Update timezone if TZ is changed at runtime
 if [ -n "$TZ" ]; then
   sudo ln -snf /usr/share/zoneinfo/$TZ /etc/localtime 
-  sudo echo $TZ > /etc/timezone
+  echo $TZ | sudo tee /etc/timezone > /dev/null
 fi
 
 # Make sure required arguments are set
@@ -86,9 +86,9 @@ get_installed_version() {
     grep '"buildid"' ${ARK_PATH}/steamapps/appmanifest_2430930.acf | awk -F'"' '{print $4}'
 }
 
-# Function to get the latest version from Steam
+# Function to get the latest version from Steam - targeting public branch specifically
 get_latest_version() {
-    steamcmd +login anonymous +app_info_print 2430930 +quit | awk '/"branches"/,/}/' | awk '/"buildid"/ {print $2}' | tr -d '"'
+    steamcmd +login anonymous +app_info_print 2430930 +quit | grep -A 2 '^\s*"public"\s*$' | grep -m 1 '"buildid"' | awk '{print $2}' | tr -d '",'
 }
 
 # Update Ark Ascended if needed
@@ -116,6 +116,11 @@ update_server() {
 
 # Call the update function
 update_server
+
+# Setup auto-update cron job if enabled
+if [ "${AUTO_UPDATE_ENABLED}" = "true" ]; then
+    /home/steam/update-scripts/setup-update-cron.sh
+fi
 
 # Check that log directory exists, if not create
 if ! [ -d "${ARK_PATH}/ShooterGame/Saved/Logs/" ]; then

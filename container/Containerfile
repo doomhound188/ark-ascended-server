@@ -27,6 +27,10 @@ ENV BACKUP_PATHS "${ARK_PATH}/ShooterGame/Saved"
 ENV BACKUP_EXCLUDE ""
 ENV BACKUP_BEFORE_UPDATE "true"
 
+# Update check configuration (defaults)
+ENV AUTO_UPDATE_ENABLED "true"
+ENV AUTO_UPDATE_SCHEDULE "0 */4 * * *"  # Every 4 hours
+
 RUN groupadd -g $CONTAINER_GID steam \
     && useradd -g $CONTAINER_GID -u $CONTAINER_UID -m steam \
     && sed -i 's#^Components: .*#Components: main non-free contrib#g' /etc/apt/sources.list.d/debian.sources \
@@ -82,10 +86,12 @@ RUN mkdir "$ARK_PATH" \
     && echo "${IMAGE_VERSION}" > /home/steam/image_version \
     && echo "${MAINTAINER}" > /home/steam/image_maintainer \
     && echo "${CONTAINER_UID}:${CONTAINER_GID}" > /home/steam/expected_filesystem_permissions \
-    && mkdir -p /home/steam/backup-scripts
+    && mkdir -p /home/steam/backup-scripts \
+    && mkdir -p /home/steam/update-scripts
 
 COPY entrypoint.sh /home/steam/entrypoint.sh
 COPY backup-scripts/* /home/steam/backup-scripts/
+COPY update-scripts/* /home/steam/update-scripts/
 
 WORKDIR /home/steam
 
