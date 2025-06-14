@@ -34,8 +34,8 @@ echo "$(timestamp) INFO: Launching Ark: Survival Ascended dedicated server image
 
 # Update timezone if TZ is changed at runtime
 if [ -n "$TZ" ]; then
-  ln -snf /usr/share/zoneinfo/$TZ /etc/localtime 
-  echo $TZ | tee /etc/timezone > /dev/null
+  sudo ln -snf /usr/share/zoneinfo/$TZ /etc/localtime 
+  echo $TZ | sudo tee /etc/timezone > /dev/null
 fi
 
 # Make sure required arguments are set
