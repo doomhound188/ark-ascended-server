@@ -34,8 +34,8 @@ echo "$(timestamp) INFO: Launching Ark: Survival Ascended dedicated server image
 
 # Update timezone if TZ is changed at runtime
 if [ -n "$TZ" ]; then
-  sudo ln -snf /usr/share/zoneinfo/$TZ /etc/localtime 
-  echo $TZ | sudo tee /etc/timezone > /dev/null
+  ln -snf /usr/share/zoneinfo/$TZ /etc/localtime 
+  echo $TZ | tee /etc/timezone > /dev/null
 fi
 
 # Make sure required arguments are set
@@ -181,27 +181,6 @@ if grep -q "RCONPort=" ${ARK_PATH}/ShooterGame/Saved/Config/WindowsServer/GameUs
     sed -i "s/RCONPort=[0-9]*/RCONPort=${RCON_PORT}/" ${ARK_PATH}/ShooterGame/Saved/Config/WindowsServer/GameUserSettings.ini
 fi
 
-echo ""
-echo "   _____         __                                        "
-echo "  /  _  \_______|  | __                                    "
-echo " /  /_\  \_  __ \  |/ /                                    "
-echo "/    |    \  | \/    <                                     "
-echo "\____|__  /__|  |__|_ \                                    "
-echo "        \/           \/                                    "
-echo "  _________                  .__              .__          "
-echo " /   _____/__ ____________  _|__|__  _______  |  |         "
-echo " \_____  \|  |  \_  __ \  \/ /  \  \/ /\__  \ |  |         "
-echo " /        \  |  /|  | \/\   /|  |\   /  / __ \|  |__       "
-echo "/_______  /____/ |__|    \_/ |__| \_/  (____  /____/       "
-echo "        \/                                  \/             "
-echo "   _____                                  .___         .___"
-echo "  /  _  \   ______ ____  ____   ____    __| _/____   __| _/"
-echo " /  /_\  \ /  ___// ___\/ __ \ /    \  / __ |/ __ \ / __ | "
-echo "/    |    \\\___ \\\  \__\  ___/|   |  \/ /_/ \  ___// /_/ | "
-echo "\____|__  /____  >\___  >___  >___|  /\____ |\___  >____ | "
-echo "        \/     \/     \/    \/     \/      \/    \/     \/ "
-echo "                                                           "
-echo "                                                           "
 echo "$(timestamp) INFO: Launching ARK:SA"
 echo "-----------------------------------------------------------"
 echo "Server Name: ${SESSION_NAME}"
