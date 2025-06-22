@@ -68,6 +68,22 @@ if [ -z "$SERVER_ADMIN_PASSWORD" ]; then
     exit 1
 fi
 
+# Cluster configuration
+if [ "${CLUSTER_ENABLED}" = "true" ]; then
+    if [ -z "$CLUSTER_ID" ]; then
+        echo "$(timestamp) ERROR: CLUSTER_ID must be set when CLUSTER_ENABLED=true"
+        exit 1
+    fi
+    
+    # Create cluster directory if it doesn't exist
+    if [ ! -d "${ARK_PATH}/ShooterGame/Saved/clusters/${CLUSTER_ID}" ]; then
+        mkdir -p "${ARK_PATH}/ShooterGame/Saved/clusters/${CLUSTER_ID}"
+        echo "$(timestamp) INFO: Created cluster directory for cluster ID: ${CLUSTER_ID}"
+    fi
+    
+    echo "$(timestamp) INFO: Cluster mode enabled with cluster ID: ${CLUSTER_ID}"
+fi
+
 # Check for correct ownership
 if ! touch "${ARK_PATH}/ShooterGame/Saved/test"; then
     echo ""
@@ -150,6 +166,17 @@ LAUNCH_COMMAND="${LAUNCH_COMMAND}?ServerAdminPassword=${SERVER_ADMIN_PASSWORD}"
 
 # According to Wiki, game port is not a ? deliniated command
 LAUNCH_COMMAND="${LAUNCH_COMMAND} -port=${GAME_PORT}"
+
+# Add cluster parameters if clustering is enabled
+if [ "${CLUSTER_ENABLED}" = "true" ]; then
+    LAUNCH_COMMAND="${LAUNCH_COMMAND} -ClusterID=${CLUSTER_ID}"
+    if [ -n "${CLUSTER_DIR_OVERRIDE}" ]; then
+        LAUNCH_COMMAND="${LAUNCH_COMMAND} -ClusterDirOverride=${CLUSTER_DIR_OVERRIDE}"
+    fi
+    if [ -n "${ALT_SAVE_DIRECTORY_NAME}" ]; then
+        LAUNCH_COMMAND="${LAUNCH_COMMAND} -AltSaveDirectoryName=${ALT_SAVE_DIRECTORY_NAME}"
+    fi
+fi
 
 if [ -n "${EXTRA_FLAGS}" ]; then
     LAUNCH_COMMAND="${LAUNCH_COMMAND} ${EXTRA_FLAGS}"

@@ -1,0 +1,126 @@
+version: '3.8'
+
+services:
+  # The Island Server
+  ark-island:
+    image: sknnr/ark-ascended-server:latest
+    container_name: ark-island
+    ports:
+      - "7777:7777/udp"
+      - "27020:27020/tcp"
+    environment:
+      - SESSION_NAME=ARK Cluster - The Island
+      - SERVER_PASSWORD=ClusterPassword123
+      - SERVER_MAP=TheIsland_WP
+      - SERVER_ADMIN_PASSWORD=AdminPassword123
+      - GAME_PORT=7777
+      - RCON_PORT=27020
+      - CLUSTER_ENABLED=true
+      - CLUSTER_ID=MyARKCluster
+      - ALT_SAVE_DIRECTORY_NAME=Island
+      - EXTRA_SETTINGS=?PreventDownloadSurvivors=False?PreventDownloadItems=False?PreventDownloadDinos=False?PreventUploadSurvivors=False?PreventUploadItems=False?PreventUploadDinos=False?ServerCrosshair=True?MapPlayerLocation=True
+      - TZ=America/Toronto
+    volumes:
+      - ark-island-data:/home/steam/ark/ShooterGame/Saved
+      - ark-cluster-data:/home/steam/ark/ShooterGame/Saved/clusters
+    restart: unless-stopped
+    networks:
+      - ark-cluster-network
+
+  # Ragnarok Server
+  ark-ragnarok:
+    image: sknnr/ark-ascended-server:latest
+    container_name: ark-ragnarok
+    ports:
+      - "7778:7778/udp"
+      - "27021:27021/tcp"
+    environment:
+      - SESSION_NAME=ARK Cluster - Ragnarok
+      - SERVER_PASSWORD=ClusterPassword123
+      - SERVER_MAP=Ragnarok_WP
+      - SERVER_ADMIN_PASSWORD=AdminPassword123
+      - GAME_PORT=7778
+      - RCON_PORT=27021
+      - CLUSTER_ENABLED=true
+      - CLUSTER_ID=MyARKCluster
+      - ALT_SAVE_DIRECTORY_NAME=Ragnarok
+      - EXTRA_SETTINGS=?PreventDownloadSurvivors=False?PreventDownloadItems=False?PreventDownloadDinos=False?PreventUploadSurvivors=False?PreventUploadItems=False?PreventUploadDinos=False?ServerCrosshair=True?MapPlayerLocation=True
+      - TZ=America/Toronto
+    volumes:
+      - ark-ragnarok-data:/home/steam/ark/ShooterGame/Saved
+      - ark-cluster-data:/home/steam/ark/ShooterGame/Saved/clusters
+    restart: unless-stopped
+    networks:
+      - ark-cluster-network
+
+  # Scorched Earth Server (Optional)
+  ark-scorchedearth:
+    image: sknnr/ark-ascended-server:latest
+    container_name: ark-scorchedearth
+    ports:
+      - "7779:7779/udp"
+      - "27022:27022/tcp"
+    environment:
+      - SESSION_NAME=ARK Cluster - Scorched Earth
+      - SERVER_PASSWORD=ClusterPassword123
+      - SERVER_MAP=ScorchedEarth_WP
+      - SERVER_ADMIN_PASSWORD=AdminPassword123
+      - GAME_PORT=7779
+      - RCON_PORT=27022
+      - CLUSTER_ENABLED=true
+      - CLUSTER_ID=MyARKCluster
+      - ALT_SAVE_DIRECTORY_NAME=ScorchedEarth
+      - EXTRA_SETTINGS=?PreventDownloadSurvivors=False?PreventDownloadItems=False?PreventDownloadDinos=False?PreventUploadSurvivors=False?PreventUploadItems=False?PreventUploadDinos=False?ServerCrosshair=True?MapPlayerLocation=True
+      - TZ=America/Toronto
+    volumes:
+      - ark-scorchedearth-data:/home/steam/ark/ShooterGame/Saved
+      - ark-cluster-data:/home/steam/ark/ShooterGame/Saved/clusters
+    restart: unless-stopped
+    networks:
+      - ark-cluster-network
+    profiles:
+      - full-cluster
+
+  # Aberration Server (Optional)
+  ark-aberration:
+    image: sknnr/ark-ascended-server:latest
+    container_name: ark-aberration
+    ports:
+      - "7780:7780/udp"
+      - "27023:27023/tcp"
+    environment:
+      - SESSION_NAME=ARK Cluster - Aberration
+      - SERVER_PASSWORD=ClusterPassword123
+      - SERVER_MAP=Aberration_WP
+      - SERVER_ADMIN_PASSWORD=AdminPassword123
+      - GAME_PORT=7780
+      - RCON_PORT=27023
+      - CLUSTER_ENABLED=true
+      - CLUSTER_ID=MyARKCluster
+      - ALT_SAVE_DIRECTORY_NAME=Aberration
+      - EXTRA_SETTINGS=?PreventDownloadSurvivors=False?PreventDownloadItems=False?PreventDownloadDinos=False?PreventUploadSurvivors=False?PreventUploadItems=False?PreventUploadDinos=False?ServerCrosshair=True?MapPlayerLocation=True
+      - TZ=America/Toronto
+    volumes:
+      - ark-aberration-data:/home/steam/ark/ShooterGame/Saved
+      - ark-cluster-data:/home/steam/ark/ShooterGame/Saved/clusters
+    restart: unless-stopped
+    networks:
+      - ark-cluster-network
+    profiles:
+      - full-cluster
+
+volumes:
+  ark-island-data:
+    driver: local
+  ark-ragnarok-data:
+    driver: local
+  ark-scorchedearth-data:
+    driver: local
+  ark-aberration-data:
+    driver: local
+  ark-cluster-data:
+    driver: local
+
+networks:
+  ark-cluster-network:
+    driver: bridge

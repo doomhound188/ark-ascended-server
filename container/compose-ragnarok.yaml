@@ -1,0 +1,34 @@
+version: '3.8'
+
+services:
+  ark-ragnarok:
+    image: sknnr/ark-ascended-server:latest
+    container_name: ark-ragnarok
+    ports:
+      - "7777:7777/udp"
+      - "27020:27020/tcp"
+    environment:
+      - SESSION_NAME=ARK Ascended - Ragnarok
+      - SERVER_PASSWORD=RagnarokServer2024
+      - SERVER_MAP=Ragnarok_WP
+      - SERVER_ADMIN_PASSWORD=AdminPassword123
+      - GAME_PORT=7777
+      - RCON_PORT=27020
+      - EXTRA_SETTINGS=?ServerCrosshair=True?MapPlayerLocation=True?ShowFloatingDamageText=True?AllowFlyerCarryPvE=True
+      - EXTRA_FLAGS=-NoBattlEye -ForceAllowCaveFlyers
+      - TZ=America/Toronto
+      # Resource multipliers for better gameplay
+      - EXTRA_SETTINGS=${EXTRA_SETTINGS}?HarvestAmountMultiplier=2.0?XPMultiplier=2.0?TamingSpeedMultiplier=3.0?ResourcesRespawnPeriodMultiplier=0.5
+    volumes:
+      - ark-ragnarok-data:/home/steam/ark/ShooterGame/Saved
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 8G
+        reservations:
+          memory: 4G
+
+volumes:
+  ark-ragnarok-data:
+    driver: local
